@@ -76,7 +76,6 @@ void insert_macro_lines(FILE *file_ptr, struct MacroNode *curr_node) {
     }
 }
 
-}
 void free_macro_table(struct MacroNode *head) {
     struct MacroNode *curr_macro = head;
     struct MacroNode *next_macro;
@@ -98,13 +97,36 @@ void free_macro_table(struct MacroNode *head) {
     }
 }
 
+struct MacroNode* get_existing_macro(char *macro_name, struct MacroNode *head) {
+    struct MacroNode *curr_macro = head;
+    while (curr_macro != NULL) {
+        if (strcmp(curr_macro->name, macro_name) == 0) {
+            return curr_macro; 
+        }
+        curr_macro = curr_macro->next;
+    }
+    return NULL; 
+}
+
+void print_macro_lines(struct MacroNode *macro, FILE *output_file) {
+    struct MacroLine *curr_line = macro->lines_head;
+    while (curr_line != NULL) {
+            fputs(curr_line->line, output_file);
+            curr_line = curr_line->next;
+        }
+}
+
 int main(int argc, char *argv[]) 
 {
     int i;
-    FILE *file_ptr;
+    int sizeof_name;
+    FILE *input_file_ptr;
+    FILE *output_file_ptr;
     char line[MAX_LINE_LEN];
     char first_word[MAX_WORD_LENGTH];
     char macro_name[MAX_WORD_LENGTH];
+    char *output_file_name;
+    char *input_file_name;
     
     struct MacroNode *macro_head = NULL; 
     struct MacroNode *curr_macro = NULL;
@@ -116,26 +138,55 @@ int main(int argc, char *argv[])
     }
 
     for (i = 1; i < argc; i++) {
-        file_ptr = fopen(argv[i], "r");
-      
-        if (file_ptr == NULL) {
+        sizeof_name = strlen(argv[i]) + strlen(".am") + 1;
+        output_file_name = (char *)malloc(sizeof_name);
+        input_file_name = (char *)malloc(sizeof_name);
+        sprintf(output_file_name, "%s.am", argv[i]);
+        sprintf(input_file_name, "%s.as", argv[i]);
+        input_file_ptr = fopen(input_file_name, "r");
+        
+        if (input_file_ptr == NULL) {
             perror(argv[i]);
+            free(output_file_name);
+            free(input_file_name);
             continue;
         }
 
         printf("=== Processing file: %s ===\n", argv[i]);
-
-        while (fgets(line, MAX_LINE_LEN, file_ptr) != NULL) {
-            if (sscanf(line, "%49s %49s", first_word, macro_name) == 2) {
-                if (strcmp(first_word, "mcro") == 0) {
-                    curr_macro = add_macro(&macro_head, macro_name);
-                    insert_macro_lines(file_ptr, curr_macro);
-                }
-            }
+        
+        output_file_ptr = fopen(output_file_name, "w");
+        if (output_file_ptr == NULL) {
+            printf("Error: couldn't create output file %s\n", output_file_name);
+            fclose(input_file_ptr);
+            free(output_file_name);
+            return 1; 
         }
 
-        fclose(file_ptr);
+        while (fgets(line, MAX_LINE_LEN, input_file_ptr) != NULL) {
+            int result = sscanf(line, "%49s %49s", first_word, macro_name);
+            
+            if (result >= 1) {
+                if (strcmp(first_word, "mcro") == 0) {
+                    curr_macro = add_macro(&macro_head, macro_name);
+                    insert_macro_lines(input_file_ptr, curr_macro);
+                    continue; 
+                }
+                
+                struct MacroNode *found_macro = get_existing_macro(first_word, macro_head);
+                if (found_macro != NULL) {
+                    print_macro_lines(found_macro, output_file_ptr);
+                    continue; 
+                }
+            }
+            
+            fputs(line, output_file_ptr);
+        }
+
+        fclose(input_file_ptr);
+        fclose(output_file_ptr); 
         free_macro_table(macro_head);
+        free(output_file_name);
+        free(input_file_name);
         macro_head = NULL; 
     }
 
