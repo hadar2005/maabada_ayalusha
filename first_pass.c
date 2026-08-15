@@ -6,7 +6,7 @@
 #include "data_parser.h"
 #include "symbol_table.h"
 #include "instruction_parser.h"
-#include "table.h"
+#include "tables.h"
 
 /* this function reads the am line by line. addresses each line (code/data) to its respective handler */
 void run_first_pass(FILE *file_ptr)
