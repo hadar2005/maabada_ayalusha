@@ -1,7 +1,7 @@
 #ifndef INSTRUCTION_PARSER_H
 #define INSTRUCTION_PARSER_H
 
-#include "table.h" /*using the Command struct*/
+#include "tables.h" /*using the Command struct*/
 
 /*finds details about a command from its name and the table*/
 const Command* find_command(const char *cmd_name);
