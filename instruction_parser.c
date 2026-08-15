@@ -1,8 +1,22 @@
 #include <string.h>
+#include <stdio.h>
 #include "instruction_parser.h"
 #include "tables.h"
+#include "data_structures.h"
 
+/*constants*/
 #define NUM_COMMANDS 27
+#define MIN_REGISTER 0
+#define MAX_REGISTER 31
+#define MIN_OPCODE 0
+#define MAX_OPCODE 63
+#define MIN_FUNCT 0
+#define MAX_FUNCT 31
+#define MIN_IMMED -32768
+#define MAX_IMMED 32767
+#define MASK_16_BITS 0xFFFF
+#define MAX_J_ADDRESS 0x1FFFFFF
+#define MASK_25_BITS 0x1FFFFFF
 
 /*finds details about a command from its name and the table*/
 const Command* find_command(const char *cmd_name) {
@@ -31,15 +45,15 @@ unsigned int build_r_instruction(int opcode, int funct, int rs, int rt, int rd) 
   unsigned int instruction = 0;
   
   /*input check: registers should be in range 0-31*/
-  if (rs < 0 || rs > 31 || rt < 0 || rt > 31 || rd < 0 || rd > 31) {
-    printf("Error: Register number out of range (0-31)\n");
+  if (rs < MIN_REGISTER || rs > MAX_REGISTER || rt < MIN_REGISTER || rt > MAX_REGISTER || rd < MIN_REGISTER || rd > MAX_REGISTER) {
+    printf("Error: Register number out of range (%d-%d)\n", MIN_REGISTER, MAX_REGISTER);
     return 0;
   }
 
   /*input check: opcode should be in range 0-63
                   funct should be in range 0-31*/
-  if (opcode < 0 || opcode > 63 || funct < 0 || funct > 31) {
-    printf("Error: Opcode or Funct out of range (0-63)\n");
+  if (opcode < MIN_OPCODE || opcode > MAX_OPCODE || funct < MIN_FUNCT || funct > MAX_FUNCT) {
+    printf("Error: Opcode or Funct out of range (%d-%d)\n", MIN_OPCODE, MAX_OPCODE);
     return 0;
   }
   
@@ -70,20 +84,20 @@ unsigned int build_i_instruction(int opcode, int rs, int rt, int immed) {
   unsigned int instruction = 0;
   
   /*input check: registers should be in range 0-31*/
-  if (rs < 0 || rs > 31 || rt < 0 || rt > 31) {
-    printf("Error: Register number out of range (0-31)\n");
+  if (rs < MIN_REGISTER || rs > MAX_REGISTER || rt < MIN_REGISTER || rt > MAX_REGISTER) {
+    printf("Error: Register number out of range (%d-%d)\n", MIN_REGISTER, MAX_REGISTER);
     return 0;
   }
 
   /*input check: opcode should be in range 0-63*/
-  if (opcode < 0 || opcode > 63) {
-    printf("Error: Opcode out of range (0-63)\n");
+  if (opcode < MIN_OPCODE || opcode > MAX_OPCODE) {
+    printf("Error: Opcode out of range (%d-%d)\n", MIN_OPCODE, MAX_OPCODE);
     return 0;
   }
   
   /*input check: immed should be in range -32768 to 32767*/
-  if (immed < -32768 || immed > 32767) {
-    printf("Error: Immediate value %d out of range (-32768 to 32767)\n", immed);
+  if (immed < MIN_IMMED || immed > MAX_IMMED) {
+    printf("Error: Immediate value %d out of range (%d to %d)\n", immed, MIN_IMMED, MAX_IMMED);
     return 0;
   }
   
@@ -97,7 +111,7 @@ unsigned int build_i_instruction(int opcode, int rs, int rt, int immed) {
   instruction |= ((unsigned int)(rt) << 16);
   
   /*the immed is bits 0-15 with mask to ensure only the lower 16 bits are used*/
-  instruction |= (unsigned int)(immed) & 0xFFFF;
+  instruction |= (unsigned int)(immed) & MASK_16_BITS;
   
   
   return instruction;
@@ -108,28 +122,28 @@ unsigned int build_j_instruction(int opcode, int reg_flag, int address_or_reg) {
   unsigned int instruction = 0;
   
   /*input check: opcode should be in range 0-63*/
-  if (opcode < 0 || opcode > 63) {
-    printf("Error: Opcode out of range (0-63)\n");
+  if (opcode < MIN_OPCODE || opcode > MAX_OPCODE) {
+    printf("Error: Opcode out of range (%d-%d)\n", MIN_OPCODE, MAX_OPCODE);
     return 0;
   }
 
   /*input check: reg_flag should be 0 or 1*/
-  if (reg_flag < 0 || reg_flag > 1) {
-    printf("Error: Register flag out of range (0 or 1)\n");
+  if (reg_flag != FALSE && reg_flag != TRUE) {
+    printf("Error: Register flag out of range (%d or %d)\n", FALSE, TRUE);
     return 0;
   }
 
-  if (reg_flag == 0) { /*if we are using a label*/
+  if (reg_flag == FALSE) { /*if we are using a label*/
 
     /*input check: address should be in range 0-33554431 (25 bits)*/
-    if (address_or_reg < 0 || address_or_reg > 0x1FFFFFF) {
-      printf("Error: Address out of range (0-33554431)\n");
+    if (address_or_reg < 0 || address_or_reg > MAX_J_ADDRESS) {
+      printf("Error: Address out of range (0-%d)\n", MAX_J_ADDRESS);
       return 0;
     }
   } else { /*if we are using a register*/
     /*input check: register should be in range 0-31*/
-    if (address_or_reg < 0 || address_or_reg > 31) {
-      printf("Error: Register number out of range (0-31)\n");
+    if (address_or_reg < 0 || address_or_reg > MAX_REGISTER) {
+      printf("Error: Register number out of range (%d-%d)\n", MIN_REGISTER, MAX_REGISTER);
       return 0;
     }
   }
@@ -142,7 +156,7 @@ unsigned int build_j_instruction(int opcode, int reg_flag, int address_or_reg) {
   instruction |= ((unsigned int)(reg_flag) << 25);
   
   /*the address_or_reg is bits 0-24 with mask to ensure only the lower 25 bits are used*/
-  instruction |= (unsigned int)(address_or_reg) & 0x1FFFFFF;
+  instruction |= (unsigned int)(address_or_reg) & MASK_25_BITS;
   
   return instruction;
 }
