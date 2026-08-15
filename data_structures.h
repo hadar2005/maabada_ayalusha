@@ -58,7 +58,7 @@ struct MacroNode {
 /* --- Data Structures for the Symbol Table (Labels) --- */
 
 /* Structure for a label in the symbol table (linked list) */
-struct SymbolNode {
+typedef struct SymbolNode {
     char name[MAX_LABEL_LEN];
     int address;
     
@@ -69,6 +69,13 @@ struct SymbolNode {
     int is_entry;
     
     struct SymbolNode *next;
-};
+} SymbolNode;
+
+/* Structure for external label usage tracking (.ext file) */
+typedef struct ExtUsageNode {
+    char name[MAX_LABEL_LEN];
+    int address;
+    struct ExtUsageNode *next;
+} ExtUsageNode;
 
 #endif
