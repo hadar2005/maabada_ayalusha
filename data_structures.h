@@ -42,18 +42,18 @@
 /* --- Data Structures for Macro Expansion --- */
 
 /* Structure for a single line inside a macro */
-struct MacroLine {
+typedef struct MacroLine {
     char line[MAX_LINE_LEN];
     struct MacroLine *next;     
-};
+} MacroLine;
 
 /* Structure for a complete macro in the macro table (linked list) */
-struct MacroNode {
+typedef struct MacroNode {
     char *name;
     struct MacroLine *lines_head;  
     struct MacroLine *lines_tail;  
     struct MacroNode *next;
-};
+} MacroNode;
 
 /* --- Data Structures for the Symbol Table (Labels) --- */
 
