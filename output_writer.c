@@ -32,6 +32,7 @@ int write_ob_file(const char *filename, unsigned int *code_image, int icf, unsig
 
     file_ptr = fopen(full_filename, "w");
     if (file_ptr == NULL) {
+        printf("Error: Cannot open file %s for writing\n", full_filename);
         return ERROR;
     }
 
