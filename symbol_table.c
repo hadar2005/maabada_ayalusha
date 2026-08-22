@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data_structures.h"
+#include "memory_manager.h"
 
 /*  Searches for a symbol by its name in the symbol table.
  Returns a pointer to the symbolif found, or NULL if it doesn't exist. */
@@ -92,15 +93,4 @@ void update_data_symbols_address(struct SymbolNode *head, int ICF) {
     }
 }
 
-/*Frees all dynamically allocated memory for the symbol table.*/
 
-void free_symbol_table(struct SymbolNode *head) {
-    struct SymbolNode *curr = head;
-    struct SymbolNode *next_node;
-
-    while (curr != NULL) {
-        next_node = curr->next;
-        free(curr);
-        curr = next_node;
-    }
-}

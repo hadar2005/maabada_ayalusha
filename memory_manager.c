@@ -1,4 +1,5 @@
 #include "data_structures.h"
+#include <stdlib.h>
 
 /*frees the memory allocated for the symbol table*/
 void free_symbol_table(SymbolNode *head) {

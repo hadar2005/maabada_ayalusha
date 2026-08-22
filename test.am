@@ -1,0 +1,17 @@
+; Test file for checking First and Second Pass
+.entry LOOP
+.entry LENGTH
+.extern L3
+
+MAIN:   add $3, $5, $9
+LOOP:   ori $9, -5, $2
+        la val1
+        jmp Next
+        bne $31, $9, LOOP
+        call L3
+        jmp L3
+Next:   hlt
+
+val1:   .dw 10, -5
+STR:    .asciz "aB"
+LENGTH: .db 27

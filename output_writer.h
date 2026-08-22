@@ -4,7 +4,7 @@
 #include "data_structures.h"
 
 /*create the output object file - the machine code .ob*/
-int write_obj_file(const char *filename, int *code_image, int icf, unsigned char *data_image, int dcf);
+int write_ob_file(const char *filename, unsigned int *code_image, int icf, unsigned char *data_image, int dcf);
 
 /*create the entry file - the symbol table .ent*/
 int write_ent_file(const char *filename, SymbolNode *symbol_table_head);
