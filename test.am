@@ -10,8 +10,8 @@ LOOP:   ori $9, -5, $2
         bne $31, $9, LOOP
         call L3
         jmp L3
-Next:   hlt
+Next:   stop
 
 val1:   .dw 10, -5
 STR:    .asciz "aB"
-LENGTH: .db 27
+LENGTH: .db 27S

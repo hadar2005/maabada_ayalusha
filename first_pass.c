@@ -1,3 +1,10 @@
+/*
+ * First-pass assembler module. It reads macro-expanded .am input, records
+ * code/data/external symbols, parses data directives, and creates provisional
+ * instruction and data images. Unresolved labels remain zero for Pass 2;
+ * the input follows the syntax and fixed-size limits in data_structures.h.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +16,13 @@
 #include "tables.h"
 #include "first_pass.h"
 
-/* Reads the .am file line by line, builds the symbol table, and encodes data/instructions */
+/*
+ * Scan the expanded file once, classify each line, update IC/DC, and encode
+ * every instruction whose operands are immediately known. Labels are added
+ * to the symbol table and unresolved operands are left for Pass 2. Return
+ * TRUE if any input error is detected, otherwise FALSE. output pointers must
+ * refer to valid writable tables, images, and counters.
+ */
 int run_first_pass(const char *filename, struct SymbolNode **symbol_table_head, unsigned int *code_image, unsigned char *data_image, int *icf, int *dcf)
 {
     char line[MAX_LINE_LEN];
@@ -95,7 +108,9 @@ int run_first_pass(const char *filename, struct SymbolNode **symbol_table_head, 
             }
             else if (strcmp(command_word, ".asciz") == 0) 
             {
-                parse_asciz_directive(line, data_image, &DC);
+                if (parse_asciz_directive(line, data_image, &DC) == 0) {
+                    has_errors = TRUE;
+                }
             }
         }
       

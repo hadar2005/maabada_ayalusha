@@ -1,7 +1,14 @@
+/*
+ * Memory-management module. It frees the linked lists allocated while
+ * assembling a file: symbols, external usages, and macros with nested body
+ * lines. Each routine assumes list nodes were allocated dynamically and is
+ * safe to call with a NULL head.
+ */
+
 #include "data_structures.h"
 #include <stdlib.h>
 
-/*frees the memory allocated for the symbol table*/
+/* Traverse and free every symbol-table node exactly once. */
 void free_symbol_table(SymbolNode *head) {
 
     SymbolNode *current = head;
@@ -13,7 +20,7 @@ void free_symbol_table(SymbolNode *head) {
     }
 }
 
-/*frees the memory allocated for the external usage list*/
+/* Traverse and free every external-usage node exactly once. */
 void free_ext_list(ExtUsageNode *head) {
 
     ExtUsageNode *current = head;
@@ -25,7 +32,7 @@ void free_ext_list(ExtUsageNode *head) {
     }
 }
 
-/*frees the memory allocated for the macro table*/
+/* Free each macro body before freeing its name and macro-table node. */
 void free_macro_table(MacroNode *head) {
     MacroNode *current = head;
     MacroNode *temp;

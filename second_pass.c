@@ -1,3 +1,11 @@
+/*
+ * Second-pass assembler module. It rereads the macro-expanded input,
+ * resolves symbolic operands using the Pass 1 symbol table, marks entries,
+ * patches code_image, and records external references. It assumes Pass 1
+ * produced a valid table and provisional image and that output lists remain
+ * writable throughout the scan.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +17,13 @@
 #define J_TYPE_MASK 0x01FFFFFF
 #define I_TYPE_MASK 0x0000FFFF
 
+/*
+ * Scan filename.am and resolve every label-dependent instruction. The
+ * algorithm identifies directives and operands, looks up each referenced
+ * symbol, patches the corresponding instruction bits, and appends external
+ * uses to the linked list. Return TRUE when a file or label error occurs and
+ * FALSE on success; filename is a basename without the .am suffix.
+ */
 int run_second_pass(const char *filename, struct SymbolNode *symbol_table_head, unsigned int *code_image, struct ExtUsageNode **ext_list_head) {
     FILE *file_ptr;
     char line[MAX_LINE_LEN];

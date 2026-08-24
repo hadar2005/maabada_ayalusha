@@ -1,17 +1,20 @@
 CC = gcc
 CFLAGS = -Wall -ansi -pedantic -g
 
-# רשימת כל קבצי האובייקט הדרושים להרכבת התוכנית (מכל הספרינטים)
-OBJS = assembler.o first_pass.o second_pass.o symbol_table.o data_parser.o instruction_parser.o utils.o tables.o output_writer.o memory_manager.o
+# List of all object files required to build the program
+OBJS = assembler.o pre_assembler.o first_pass.o second_pass.o symbol_table.o data_parser.o instruction_parser.o utils.o tables.o output_writer.o memory_manager.o
 
-# מטרת העל - יצירת קובץ ההרצה (assembler)
+# Build the executable assembler
 assembler: $(OBJS)
 	$(CC) $(CFLAGS) -o assembler $(OBJS)
 
-# תלויות והוראות קימפול לכל קובץ בנפרד
+# Dependencies and compilation rules for each source file
 
-assembler.o: assembler.c data_structures.h first_pass.h second_pass.h output_writer.h memory_manager.h
+assembler.o: assembler.c data_structures.h pre_assembler.h first_pass.h second_pass.h output_writer.h memory_manager.h
 	$(CC) $(CFLAGS) -c assembler.c
+
+pre_assembler.o: pre_assembler.c pre_assembler.h data_structures.h
+	$(CC) $(CFLAGS) -c pre_assembler.c
 
 
 first_pass.o: first_pass.c first_pass.h data_structures.h symbol_table.h utils.h data_parser.h instruction_parser.h
@@ -41,6 +44,6 @@ output_writer.o: output_writer.c output_writer.h data_structures.h
 memory_manager.o: memory_manager.c memory_manager.h data_structures.h symbol_table.h
 	$(CC) $(CFLAGS) -c memory_manager.c
 
-# פקודת מחיקה לניקוי סביבת העבודה מקבצי ביניים לפני קימפול מחדש (make clean)
+# Remove intermediate files before rebuilding
 clean:
 	rm -f *.o assembler

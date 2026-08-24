@@ -1,13 +1,23 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-/*declaring the skip_spaces func*/
+/*
+ * Return a pointer to the first character in line that is not a space or
+ * tab. The input must be a null-terminated string; no characters are moved.
+ */
 char* skip_spaces(char *line);
 
-/*declaring the func that trims whitespaces from both ends*/
+/*
+ * Remove leading and trailing whitespace from str in place and return the
+ * resulting start pointer. The caller must provide a writable string buffer.
+ */
 char* trim_whitespace(char *str);
 
-/*declaring function to recognize next parameter by comma*/
+/*
+ * Return the next comma-separated parameter from line_segment after trimming
+ * it. The string is tokenized in place and NULL is returned when no parameter
+ * remains; therefore line_segment must be writable.
+ */
 char* get_next_comma_param(char *line_segment);
 
 /*creating a struct that will represent a label,

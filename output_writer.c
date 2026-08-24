@@ -1,9 +1,20 @@
+/*
+ * Output-writer module. It serializes the completed instruction/data images,
+ * entry symbols, and external references into .ob, .ent, and .ext files.
+ * Inputs are assumed to be valid results of the two assembler passes; file
+ * errors are reported through the SUCCESS/ERROR return values.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include "output_writer.h"
 #include "data_structures.h"
 
-/*create the output object file - the machine code .ob*/
+/*
+ * Create filename.ob, write its code/data counts, then serialize code words
+ * and data bytes in address order. Return ERROR for invalid pointers or file
+ * creation failure, otherwise SUCCESS; filename is a basename without .ob.
+ */
 int write_ob_file(const char *filename, unsigned int *code_image, int icf, unsigned char *data_image, int dcf) {
     
     /*----declare variables----*/
@@ -76,7 +87,11 @@ int write_ob_file(const char *filename, unsigned int *code_image, int icf, unsig
     return SUCCESS;
 }
 
-/*create the entry file - the symbol table .ent*/
+/*
+ * Create filename.ent only when the symbol table contains entry symbols and
+ * write each entry with its final address. Return SUCCESS when there are no
+ * entries or writing succeeds, and ERROR when file creation fails.
+ */
 int write_ent_file(const char *filename, SymbolNode *symbol_table_head) {
     FILE *file_ptr;
     char full_filename[MAX_FILE_NAME];
@@ -132,7 +147,11 @@ int write_ent_file(const char *filename, SymbolNode *symbol_table_head) {
     return SUCCESS;
 }
 
-/*create the extern file - the symbol table .ext*/
+/*
+ * Create filename.ext when external uses exist and write each symbol/address
+ * pair in list order. Return SUCCESS for an empty list or successful write,
+ * and ERROR when the output file cannot be created.
+ */
 int write_ext_file(const char *filename, ExtUsageNode *ext_usage_head) {
 
     /*----declare variables----*/

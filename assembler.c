@@ -1,93 +1,30 @@
+/*
+ * Assembler driver. The program converts one or more source files from the
+ * assembly language into object, entry, and external-reference files. It
+ * first expands macros into .am files, then performs two passes: Pass 1
+ * builds symbols and provisional images, while Pass 2 resolves labels. The
+ * input is supplied as command-line basenames and is assumed to use the
+ * project's instruction and directive syntax; output files are written next
+ * to the source files and dynamically allocated lists are released per file.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "data_structures.h"
+#include "pre_assembler.h"
 #include "first_pass.h"
 #include "second_pass.h"
 #include "output_writer.h"
 #include "memory_manager.h"
 
-/* Allocates memory and adds a new macro node to the end of the linked list */
-struct MacroNode* add_macro(struct MacroNode **head, char *macro_name) {
-    struct MacroNode *curr;
-    struct MacroNode *new_macro = (struct MacroNode *)malloc(sizeof(struct MacroNode));
-    
-    /* Allocate memory for the macro name and copy it */
-    new_macro->name = (char *)malloc(strlen(macro_name) + 1);
-    strcpy(new_macro->name, macro_name);
-    
-    new_macro->lines_head = NULL;
-    new_macro->lines_tail = NULL;
-    new_macro->next = NULL;        
-
-    /* Insert as the first node if list is empty, otherwise append to the end */
-    if (*head == NULL) {
-        *head = new_macro;
-    } else {
-        curr = *head;
-        while (curr->next != NULL) {
-            curr = curr->next;
-        }
-        curr->next = new_macro;
-    }
-
-    return new_macro; 
-}
-
-/* Reads lines from the file and stores them in the macro until "mcroend" is found */
-void insert_macro_lines(FILE *file_ptr, struct MacroNode *curr_node) {
-    char line[MAX_LINE_LEN];
-    char first_word[MAX_WORD_LENGTH];
-    struct MacroLine *new_line;
-
-    while (fgets(line, MAX_LINE_LEN, file_ptr) != NULL) {
-        
-        /* Check if the macro definition ends */
-        if (sscanf(line, "%49s", first_word) == 1) {
-            if (strcmp(first_word, "mcroend") == 0) {
-                break;
-            }
-        }
-
-        /* Allocate memory for the new line and copy the content */
-        new_line = (struct MacroLine *)malloc(sizeof(struct MacroLine));
-        strcpy(new_line->line, line);
-        new_line->next = NULL;
-        
-        /* Append the line to the macro's line list */
-        if (curr_node->lines_head == NULL) {
-            curr_node->lines_head = new_line;
-            curr_node->lines_tail = new_line;
-        } 
-        else {
-            curr_node->lines_tail->next = new_line;
-            curr_node->lines_tail = new_line;
-        }
-    }
-}
-
-/* Searches for a macro by name in the list. Returns the node if found, NULL otherwise */
-struct MacroNode* get_existing_macro(char *macro_name, struct MacroNode *head) {
-    struct MacroNode *curr_macro = head;
-    while (curr_macro != NULL) {
-        if (strcmp(curr_macro->name, macro_name) == 0) {
-            return curr_macro; 
-        }
-        curr_macro = curr_macro->next;
-    }
-    return NULL; 
-}
-
-/* Prints all stored lines of a given macro to the output file */
-void print_macro_lines(struct MacroNode *macro, FILE *output_file) {
-    struct MacroLine *curr_line = macro->lines_head;
-    while (curr_line != NULL) {
-            fputs(curr_line->line, output_file);
-            curr_line = curr_line->next;
-        }
-}
-
+/*
+ * Coordinate macro expansion, both assembler passes, output generation, and
+ * cleanup for every command-line input. The algorithm processes files in
+ * order, skips files with errors, and writes output only after both passes
+ * succeed. argc/argv contain source basenames; the function returns zero
+ * after processing the supplied arguments, or one when no input is given.
+ */
 int main(int argc, char *argv[]) 
 {
     /* C90 standard requires declaring all variables at the beginning of the block */
